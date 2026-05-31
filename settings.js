@@ -2,7 +2,6 @@ import { watchFile, unwatchFile } from "fs";
 import chalk from "chalk";
 import { fileURLToPath } from "url";
 
-global.botNumber = '';
 global.owner = ['573196588149'];
 
 global.dev = "© ⍴᥆ᥕᥱrᥱძ ᑲᥡ ⁱᵃᵐ|𝔇ĕ𝐬†𝓻⊙γ𒆜";
