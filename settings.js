@@ -6,7 +6,6 @@ global.botNumber = '';
 global.owner = ['573196588149'];
 
 global.dev = "© ⍴᥆ᥕᥱrᥱძ ᑲᥡ ⁱᵃᵐ|𝔇ĕ𝐬†𝓻⊙γ𒆜";
-
 global.links = {
   api: 'https://api.yuki-wabot.my.id',
   channel: "https://whatsapp.com/channel/0029Vb64nWqLo4hb8cuxe23n",
@@ -18,11 +17,10 @@ global.my = {
 };
 
 global.APIs = { 
-  yuki: { url: "https://api.yuki-wabot.my.id", key: "Yuki-WaBot" },
+  yuki: { url: "https://api.yuki-wabot.my.id", key: "YukiBot-MD" },
   vreden: { url: "https://api.vreden.web.id", key: null },
   ootaizumi: { url: "https://api.ootaizumi.web.id", key: null },
   delirius: { url: "https://api.delirius.store", key: null },
-  axi: { url: "https://apiaxi.i11.eu", key: null },
   zenzxz: { url: "https://api.zenzxz.my.id", key: null },
   siputzx: { url: "https://app.siputzx.my.id", key: null }
 };
