@@ -1,6 +1,7 @@
 import { normalizeJid, resolveParticipantJid, resolveJidSync, deleteCachedMeta, getCachedMeta, setCachedMeta } from '#serialize';
 import chalk from 'chalk';
 import moment from 'moment-timezone';
+import db from '#db';
 
 function getGroupAdmins(participants) {
   return (participants ?? []).filter(p => p.admin === 'admin' || p.admin === 'superadmin').map(p => p.id).filter(Boolean);
@@ -29,8 +30,8 @@ export default async (sock, msg) => {
       })();
       const groupAdmins = metadata ? getGroupAdmins(metadata.participants) : [];
       const botId = sock.user.id.split(':')[0] + '@s.whatsapp.net';
-      const chat = global.db.data.chats[anu.id] || {};
-      const settings = global.db.data.settings[botId] || {};
+      const chat = db.getChat(anu.id) || {};
+      const settings = db.getSettings(botId) || {};
       const primaryBotId = chat?.primaryBot;
       const now = new Date();
       const colombianTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
@@ -65,10 +66,10 @@ export default async (sock, msg) => {
           await sock.sendMessage(anu.id, { image: { url: pp }, caption, mentions: [jid] });
         }
         if (anu.action === 'remove' || anu.action === 'leave') {
-          const user = global.db.data.chats[anu.id]?.users?.[jid];
+          const user = db.getChatUser(anu.id, jid);
           if (user && typeof user.afk === 'number' && user.afk > -1) {
-            global.db.data.chats[anu.id].users[jid].afk = -1;
-            global.db.data.chats[anu.id].users[jid].afkReason = '';
+            db.setChatUser(anu.id, jid, 'afk', -1);
+            db.setChatUser(anu.id, jid, 'afkReason', '');
           }
         }
         if (anu.action === 'promote' && chat?.alerts && (!primaryBotId || primaryBotId === botId)) {

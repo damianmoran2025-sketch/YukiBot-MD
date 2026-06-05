@@ -1,12 +1,13 @@
+import db from '#db';
 export async function before({ msg, sock, groupMetadata, participants, isAdmins, isBotAdmins }) {
   if (!msg.isGroup) return;
   if (msg.isBot) return;
   const botId = sock.user.id.split(':')[0] + '@s.whatsapp.net';
   if (!groupMetadata) return;
-  const botSettings = global.db.data.settings[botId];
+  const botSettings = db.getSettings(botId);
   const isSelf = botSettings.self ?? 0;
   if (isSelf) return;
-  const chat = global.db.data.chats[msg.chat];
+  const chat = db.getChat(msg.chat);
   const primaryBotId = chat?.primaryBot;
   const isPrimary = !primaryBotId || primaryBotId === botId;
   const isEstado = msg.quoted?.groupStatusMentionMessage || msg.quoted?.type === 'groupStatusMentionMessage' || msg.message?.groupStatusMentionMessage || (msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.groupStatusMentionMessage);
@@ -37,8 +38,8 @@ export async function before({ msg, sock, groupMetadata, participants, isAdmins,
       }
     }
     const targetId = msg.sender;
-    (global.db.data.chats[msg.chat]?.users?.[targetId] && (global.db.data.chats[msg.chat].users[targetId].warnings ??= []));
-    let user = global.db.data.chats[msg.chat]?.users?.[targetId];
+    db.setCreate('chat_users', [msg.chat, targetId], 'warnings', []);
+    let user = db.getChatUser(msg.chat, targetId);
     let warnings = user.warnings;
     if (typeof warnings === 'string') {
       try { warnings = JSON.parse(warnings); } catch { warnings = []; }
@@ -47,7 +48,7 @@ export async function before({ msg, sock, groupMetadata, participants, isAdmins,
     const now = new Date();
     const timestamp = now.toLocaleString('es-CO', { timeZone: 'America/Bogota', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     warnings.unshift({ reason: 'Anti-Status detectado', timestamp, by: botId });
-    global.db.data.chats[msg.chat].users[targetId].warnings = warnings;
+    db.setChatUser(msg.chat, targetId, 'warnings', warnings);
     const total = warnings.length;
     const warnLimit = chat.warnLimit || 3;
     const expulsar = chat.expulsar === 1;
@@ -59,7 +60,7 @@ export async function before({ msg, sock, groupMetadata, participants, isAdmins,
     if (total >= warnLimit && expulsar) {
       try {
         await sock.groupParticipantsUpdate(msg.chat, [targetId], 'remove');
-        global.db.data.chats[msg.chat].users[targetId].warnings = [];
+        db.setChatUser(msg.chat, targetId, 'warnings', []);
         message += `\n\n> ❖ El usuario alcanzó el límite de advertencias y fue expulsado del grupo.`;
       } catch {
         message += `\n\n> ❖ El usuario alcanzó el límite, pero no se pudo expulsar automáticamente.`;
