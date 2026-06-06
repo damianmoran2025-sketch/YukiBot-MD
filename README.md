@@ -26,14 +26,6 @@ Yuki Bot es un bot de WhatsApp multifuncional basado en `baileys`. Este bot ofre
 
 ---
 
-## Información Importante
-
-Evita completamente usar forks, mods o versiones alteradas de Baileys.
-No utilices "baileys mods" ni variantes no oficiales.
-Siempre usa la librería principal y oficial de Baileys.
-
----
-
 ### Instalaciónes Básicas
 
 <details>
