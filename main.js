@@ -78,12 +78,15 @@ export default async (sock, msg) => {
   }) : typeof pluginPrefix === 'string' ? [[new RegExp(strRegex(pluginPrefix)).exec(msg.text), new RegExp(strRegex(pluginPrefix))]] : [[null, null]];
   let match = matchs.find(p => p[0]) || null;
 
-  for (const p of (global.cmdsExecute ?? [])) {
-    if (p.type !== 'before') continue;
-    try {
-      if (await p.fn({ msg, sock, match, groupMetadata, participants, isAdmins, isBotAdmins, isOwner, __dirname: p.dirname })) continue;
-    } catch (e) {
-      console.error(chalk.gray(`[ ✿ ] Error before-plugin ${p.key}: ${e.message}`));
+  const botprimaryId = chat?.primaryBot;
+  if (!botprimaryId || botprimaryId === botJid) {
+    for (const p of (global.cmdsExecute ?? [])) {
+      if (p.type !== 'before') continue;
+      try {
+        if (await p.fn({ msg, sock, match, groupMetadata, participants, isAdmins, isBotAdmins, isOwner, isModeration, __dirname: p.dirname })) continue;
+      } catch (e) {
+        console.error(chalk.gray(`[ ✿ ] Error before-plugin ${p.key}: ${e.message}`));
+      }
     }
   }
 
@@ -98,13 +101,10 @@ export default async (sock, msg) => {
   const chatData = db.getChat(from);
   const consolePrimary = chatData.primaryBot;
   if (!consolePrimary || consolePrimary === botJid) {
-    const gLugar = msg.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lime')(groupName) : '│' + chalk.bold.green(' Privado') + ': ' + gradient('pink', 'magenta')('Chat Privado');
-    const gId = '│' + chalk.bold.magenta(' ID') + ': ' + gradient('violet', 'midnightblue')(msg.isGroup ? from : 'Chat Privado');
-    console.log(chalk.bold.blue(`╭────────────────────────────···\n│ ${chalk.cyan('Bot')}: ${gradient('lime', 'green')(botJid)}\n│ ${chalk.bold.yellow('Fecha')}: ${gradient('orange', 'yellow')(moment().format('DD/MM/YY HH:mm:ss'))}\n│ ${chalk.bold.blueBright('Usuario')}: ${gradient('cyan', 'blue')(pushname)}\n│ ${chalk.bold.magentaBright('Remitente')}: ${gradient('deepskyblue', 'darkorchid')(sender)}\n${gLugar}\n${gId}\n│ ${chalk.bold.cyanBright('Comando usado')}: ${chalk.gray(command ? command : 'No Command')}\n╰────────────────────────────···\n`));
+    console.log(chalk.bold.blue(`╭────────────────────────────···\n│ ${chalk.cyan('Bot')}: ${gradient('lime', 'green')(botJid)}\n│ ${chalk.bold.yellow('Fecha')}: ${gradient('orange', 'yellow')(moment().format('DD/MM/YY HH:mm:ss'))}\n│ ${chalk.bold.blueBright('Usuario')}: ${gradient('cyan', 'blue')(pushname)}\n│ ${chalk.bold.magentaBright('Remitente')}: ${gradient('deepskyblue', 'darkorchid')(sender)}\n${msg.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lime')(groupName) : '│' + chalk.bold.green(' Privado') + ': ' + gradient('pink', 'magenta')('Chat Privado')}\n${'│' + chalk.bold.magenta(' ID') + ': ' + gradient('violet', 'midnightblue')(msg.isGroup ? from : 'Chat Privado')}\n│ ${chalk.bold.cyanBright('Comando usado')}: ${chalk.gray(command ? command : 'No Command')}\n╰────────────────────────────···\n`));
   }
 
   const hasPrefix = settings.prefix === 1 ? 1 : (Array.isArray(settings.prefix) ? settings.prefix : typeof settings.prefix === 'string' ? [settings.prefix] : []).some(p => msg.text?.startsWith(p));
-  const botprimaryId = chat?.primaryBot;
   if (botprimaryId && botprimaryId !== botJid) {
     if (hasPrefix) {
       const groupJids = participants.map(p => p.id);
