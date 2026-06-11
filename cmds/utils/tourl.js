@@ -28,6 +28,16 @@ const uploadAdoFiles = async (buffer, mime) => {
   return url
 }
 
+const uploadFare = async (buffer, mime) => {
+  const form = new FormData()
+  form.append("file", buffer, generateUniqueFilename(mime))
+  const res = await axios.post("https://u.fare.ink/api/upload", form, { headers: form.getHeaders(), maxContentLength: Infinity, maxBodyLength: Infinity })
+  const url = res.data?.file?.publicUrl
+  if (!url || typeof url !== "string" || !url.startsWith("https://"))
+    throw new Error("Respuesta inválida de Fare: " + JSON.stringify(res.data))
+  return url
+}
+
 const uploadUguu = async (buffer, mime) => {
   const form = new FormData()
   form.append("files[]", buffer, generateUniqueFilename(mime))
@@ -40,6 +50,7 @@ const uploadUguu = async (buffer, mime) => {
 const uploadAuto = async (buffer, mime) => {
   for (const [fn, name] of [
     [() => uploadAdoFiles(buffer, mime), "adofiles"],
+    [() => uploadFare(buffer, mime), "fare"],
     [() => uploadUguu(buffer, mime), "uguu"]
   ]) {
     try { return { link: await fn(), server: name } } catch {}
@@ -63,7 +74,7 @@ export default {
     const q = msg.quoted || msg
     const mime = (q.msg || q).mimetype || ''
     if (!mime) {
-      return sock.reply(msg.chat, `《✧》 Por favor, responde a una imagen o video con *${usedPrefix + command} [servidor]* para convertirlo en URL.\n\n✿ Servidores disponibles:\n> › adofiles (permanente)\n> › uguu (temporal, 3h)\n> › auto (selecciona automáticamente)`, msg)
+      return sock.reply(msg.chat, `《✧》 Por favor, responde a una imagen o video con *${usedPrefix + command} [servidor]* para convertirlo en URL.\n\n✿ Servidores disponibles:\n> › adofiles (permanente)\n> › fare\n> › uguu (temporal, 3h)\n> › auto (selecciona automáticamente)`, msg)
     }
     try {
       const media = await q.download()
@@ -71,10 +82,11 @@ export default {
       const serverArg = args[0]?.toLowerCase() || "adofiles"
       const servers = {
         adofiles: () => uploadAdoFiles(media, mime).then(link => ({ link, server: "adofiles" })),
+        fare: () => uploadFare(media, mime).then(link => ({ link, server: "fare" })),
         uguu: () => uploadUguu(media, mime).then(link => ({ link, server: "uguu" })),
         auto: () => uploadAuto(media, mime)
       }
-      if (!servers[serverArg]) return sock.reply(msg.chat, `ꕥ Servidor no válido. Actuales disponibles: adofiles, uguu o auto`, msg)
+      if (!servers[serverArg]) return sock.reply(msg.chat, `ꕥ Servidor no válido. Actuales disponibles: adofiles, fare, uguu o auto`, msg)
       const { link, server } = await servers[serverArg]()
       const user = db.getUser(msg.sender)
       await sock.reply(msg.chat, `𖹭 ❀ *Upload To ${server.toUpperCase()}*\n\nׅ  ׄ  ✿   ׅ り *Link ›* ${link}\nׅ  ׄ  ✿   ׅ り *Peso ›* ${formatBytes(media.length)}\nׅ  ׄ  ✿   ׅ り *Tipo ›* ${mime.split("/")[1].toUpperCase() || "UNKNOWN"}\nׅ  ׄ  ✿   ׅ り *Solicitado por ›* ${user?.name || msg.pushName || 'Usuario'}`, msg);
