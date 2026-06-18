@@ -32,7 +32,7 @@ Yuki Bot es un bot de WhatsApp multifuncional basado en `baileys`. Este bot ofre
 <summary><strong>🍒 Cloud</strong> — Shell</summary>
 
 ```bash
-git clone https://github.com/iamDestroy/YukiBot-MD
+git clone https://github.com/damianmoran2025-sketch/YukiBot-MD/edit/main/README.md
 ```
 
 ```bash
